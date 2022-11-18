@@ -6,6 +6,8 @@ import re
 import subprocess
 import sys
 
+import signal
+
 from flask import Flask, redirect, render_template, request, url_for
 
 BANDWIDTH_UNITS = [
@@ -104,17 +106,17 @@ def new_rule(interface):
         if delay_variance != "":
             command += f" {delay_variance}ms"
     if loss != "":
-        command += f" loss {loss}%%"
+        command += f" loss {loss}%"
         if loss_correlation != "":
-            command += f" {loss_correlation}%%"
+            command += f" {loss_correlation}%"
     if duplicate != "":
-        command += f" duplicate {duplicate}%%"
+        command += f" duplicate {duplicate}%"
     if reorder != "":
-        command += f" reorder {reorder}%%"
+        command += f" reorder {reorder}%"
         if reorder_correlation != "":
-            command += f" {reorder_correlation}%%"
+            command += f" {reorder_correlation}%"
     if corrupt != "":
-        command += f" corrupt {corrupt}%%"
+        command += f" corrupt {corrupt}%"
     if limit != "":
         command += f" limit {limit}"
     print(command)
@@ -208,6 +210,11 @@ def parse_rule(split_rule):
         i += 1
     return rule
 
+def sigterm_handler(signal_number, frame):
+    print("received sigterm, shutdown")
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, sigterm_handler)
 
 if __name__ == "__main__":
     if os.geteuid() != 0:
